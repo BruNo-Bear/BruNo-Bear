@@ -266,7 +266,7 @@ fun ShopScreen(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth().padding(screenPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { SectionTitle("Our products") }
+        item { SectionTitle("Windows & software") }
         items(BusinessInfo.PRODUCTS) { product ->
             Card {
                 Column(Modifier.padding(screenPadding), verticalArrangement = Arrangement.spacedBy(4.dp)) {

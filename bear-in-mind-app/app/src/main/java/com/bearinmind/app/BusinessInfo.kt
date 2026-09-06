@@ -5,11 +5,11 @@ package com.bearinmind.app
  */
 object BusinessInfo {
     const val NAME = "Bear In Mind"
-    const val TAGLINE = "Thoughtful service, kept in mind."
+    const val TAGLINE = "Computer repairs, software and web design."
     const val ABOUT =
-        "Bear In Mind is a small local business built on care and attention to detail. " +
-            "We keep track of what matters to you so nothing gets forgotten. " +
-            "Browse our services, book an appointment, shop our products, or jot down a reminder."
+        "Bear In Mind fixes laptops and desktops, installs Windows and software, " +
+            "and builds websites for small businesses. " +
+            "Browse what we do, book a repair, or jot down a reminder for yourself."
 
     const val PHONE = "+27000000000"
     const val EMAIL = "Bruceandre89@gmail.com"
@@ -23,17 +23,17 @@ object BusinessInfo {
     )
 
     val SERVICES = listOf(
-        Service("Consultation", "A 30 minute chat to understand exactly what you need.", "R250"),
-        Service("Standard Package", "Our most popular option, delivered within five working days.", "R1 200"),
-        Service("Premium Package", "Priority turnaround with ongoing support for a full month.", "R2 500"),
-        Service("Support & Maintenance", "Monthly check-ins, updates and small fixes.", "R650 / month"),
+        Service("Repairing of computers", "Laptops and desktops. Price depends on the problem.", "R700"),
+        Service("Web design", "Basic website for your business.", "R1 500"),
+        Service("Software installation", "Price depends on the software.", "R150"),
+        Service("Windows installation", "Windows 7, 8 or 10 on laptops and desktops.", "From R100"),
     )
 
     val PRODUCTS = listOf(
-        Product("Bear In Mind Notebook", "A5 hardcover notebook with dotted pages.", "R180"),
-        Product("Reminder Sticker Pack", "Twenty weatherproof stickers to label anything.", "R60"),
-        Product("Desk Planner", "Undated weekly planner, fifty two tear-off sheets.", "R220"),
-        Product("Gift Card", "Any amount, valid for twelve months on all services.", "From R100"),
+        Product("Windows 7", "Booting for laptop and desktop.", "R100"),
+        Product("Windows 8", "Booting of laptop and desktop.", "R150"),
+        Product("Windows 10", "Booting of laptops and desktop.", "R250"),
+        Product("Softwares", "Price depends on the software you need.", "R150"),
     )
 }
 

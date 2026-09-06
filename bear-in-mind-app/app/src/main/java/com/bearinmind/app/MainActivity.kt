@@ -31,7 +31,7 @@ private enum class Tab(val label: String, val icon: ImageVector) {
     Home("Home", Icons.Filled.Home),
     Services("Services", Icons.Filled.Star),
     Booking("Book", Icons.Filled.CalendarMonth),
-    Shop("Shop", Icons.Filled.ShoppingBag),
+    Shop("Catalog", Icons.Filled.ShoppingBag),
     Notes("Notes", Icons.AutoMirrored.Filled.Notes),
 }
 
