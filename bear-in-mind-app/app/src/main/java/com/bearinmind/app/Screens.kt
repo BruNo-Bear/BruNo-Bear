@@ -31,6 +31,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,8 +107,46 @@ fun HomeContent(modifier: Modifier = Modifier, onBook: () -> Unit, onServices: (
     }
 }
 
+/** Booking form input, hoisted so it survives tab switches and activity recreation. */
+class BookingFormState(
+    name: String = "",
+    phone: String = "",
+    service: String = BusinessInfo.SERVICES.first().name,
+    date: String = "",
+    time: String = "",
+    notes: String = "",
+) {
+    var name by mutableStateOf(name)
+    var phone by mutableStateOf(phone)
+    var service by mutableStateOf(service)
+    var date by mutableStateOf(date)
+    var time by mutableStateOf(time)
+    var notes by mutableStateOf(notes)
+
+    fun toBooking() = Booking(name, phone, service, date, time, notes)
+
+    fun clear() {
+        name = ""
+        phone = ""
+        date = ""
+        time = ""
+        notes = ""
+    }
+
+    companion object {
+        val Saver = listSaver<BookingFormState, String>(
+            save = { listOf(it.name, it.phone, it.service, it.date, it.time, it.notes) },
+            restore = { BookingFormState(it[0], it[1], it[2], it[3], it[4], it[5]) },
+        )
+    }
+}
+
 @Composable
-fun ServicesScreen(modifier: Modifier = Modifier, onBook: () -> Unit) {
+fun rememberBookingFormState(): BookingFormState =
+    rememberSaveable(saver = BookingFormState.Saver) { BookingFormState() }
+
+@Composable
+fun ServicesScreen(modifier: Modifier = Modifier, onBook: (Service) -> Unit) {
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(screenPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -118,7 +158,7 @@ fun ServicesScreen(modifier: Modifier = Modifier, onBook: () -> Unit) {
                     Text(service.name, style = MaterialTheme.typography.titleMedium)
                     Text(service.description, style = MaterialTheme.typography.bodyMedium)
                     Text(service.price, fontWeight = FontWeight.Bold)
-                    Button(onClick = onBook) { Text("Book this") }
+                    Button(onClick = { onBook(service) }) { Text("Book this") }
                 }
             }
         }
@@ -127,18 +167,11 @@ fun ServicesScreen(modifier: Modifier = Modifier, onBook: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(modifier: Modifier = Modifier) {
+fun BookingScreen(modifier: Modifier = Modifier, form: BookingFormState) {
     val context = LocalContext.current
     val storage = remember { Storage(context) }
     val bookings = remember { mutableStateListOf<Booking>().also { it.addAll(storage.loadBookings()) } }
-
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var service by remember { mutableStateOf(BusinessInfo.SERVICES.first().name) }
-    var date by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by rememberSaveable { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(screenPadding),
@@ -147,8 +180,8 @@ fun BookingScreen(modifier: Modifier = Modifier) {
         item { SectionTitle("Request an appointment") }
         item {
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
+                value = form.name,
+                onValueChange = { form.name = it },
                 label = { Text("Your name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -156,8 +189,8 @@ fun BookingScreen(modifier: Modifier = Modifier) {
         }
         item {
             OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
+                value = form.phone,
+                onValueChange = { form.phone = it },
                 label = { Text("Phone number") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -171,8 +204,8 @@ fun BookingScreen(modifier: Modifier = Modifier) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { option ->
                             FilterChip(
-                                selected = service == option.name,
-                                onClick = { service = option.name },
+                                selected = form.service == option.name,
+                                onClick = { form.service = option.name },
                                 label = { Text(option.name) },
                             )
                         }
@@ -183,16 +216,16 @@ fun BookingScreen(modifier: Modifier = Modifier) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = date,
-                    onValueChange = { date = it },
+                    value = form.date,
+                    onValueChange = { form.date = it },
                     label = { Text("Date") },
                     placeholder = { Text("2026-01-31") },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
                 OutlinedTextField(
-                    value = time,
-                    onValueChange = { time = it },
+                    value = form.time,
+                    onValueChange = { form.time = it },
                     label = { Text("Time") },
                     placeholder = { Text("10:00") },
                     singleLine = true,
@@ -202,8 +235,8 @@ fun BookingScreen(modifier: Modifier = Modifier) {
         }
         item {
             OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
+                value = form.notes,
+                onValueChange = { form.notes = it },
                 label = { Text("Anything we should know?") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -213,21 +246,26 @@ fun BookingScreen(modifier: Modifier = Modifier) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = {
-                        if (name.isBlank() || phone.isBlank() || date.isBlank()) {
+                        if (form.name.isBlank() || form.phone.isBlank() || form.date.isBlank()) {
                             error = "Please fill in your name, phone number and a date."
                             return@Button
                         }
-                        error = null
-                        val booking = Booking(name, phone, service, date, time, notes)
-                        bookings.add(0, booking)
-                        storage.saveBookings(bookings)
-                        Actions.email(
+                        val booking = form.toBooking()
+                        val opened = Actions.email(
                             context,
                             BusinessInfo.EMAIL,
-                            "Booking request: $service",
+                            "Booking request: ${booking.service}",
                             bookingSummary(booking),
                         )
-                        name = ""; phone = ""; date = ""; time = ""; notes = ""
+                        if (!opened) {
+                            error = "No email app on this phone, so nothing was sent. " +
+                                "Your details are still here - please call us instead."
+                            return@Button
+                        }
+                        error = null
+                        bookings.add(0, booking)
+                        storage.saveBookings(bookings)
+                        form.clear()
                     },
                 ) { Text("Send request") }
                 OutlinedButton(onClick = { Actions.dial(context, BusinessInfo.PHONE) }) { Text("Call us") }
@@ -300,11 +338,10 @@ fun ShopScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier) {
+fun NotesScreen(modifier: Modifier = Modifier, draft: String, onDraftChange: (String) -> Unit) {
     val context = LocalContext.current
     val storage = remember { Storage(context) }
     val notes = remember { mutableStateListOf<Note>().also { it.addAll(storage.loadNotes()) } }
-    var draft by remember { mutableStateOf("") }
     val formatter = remember { SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault()) }
 
     LazyColumn(
@@ -315,7 +352,7 @@ fun NotesScreen(modifier: Modifier = Modifier) {
         item {
             OutlinedTextField(
                 value = draft,
-                onValueChange = { draft = it },
+                onValueChange = onDraftChange,
                 label = { Text("New note or reminder") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -326,7 +363,7 @@ fun NotesScreen(modifier: Modifier = Modifier) {
                 onClick = {
                     notes.add(0, Note(draft.trim(), System.currentTimeMillis()))
                     storage.saveNotes(notes)
-                    draft = ""
+                    onDraftChange("")
                 },
             ) { Text("Add note") }
         }

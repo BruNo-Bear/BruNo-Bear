@@ -11,12 +11,13 @@ object Actions {
     fun dial(context: Context, phone: String) =
         start(context, Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
 
-    fun email(context: Context, address: String, subject: String, body: String = "") {
+    /** Returns true when an email app was opened. */
+    fun email(context: Context, address: String, subject: String, body: String = ""): Boolean {
         val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$address")).apply {
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
         }
-        start(context, intent)
+        return start(context, intent)
     }
 
     fun openUrl(context: Context, url: String) =
@@ -33,11 +34,11 @@ object Actions {
         start(context, Intent.createChooser(intent, "Share"))
     }
 
-    private fun start(context: Context, intent: Intent) {
-        try {
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "No app available for this action", Toast.LENGTH_SHORT).show()
-        }
+    private fun start(context: Context, intent: Intent): Boolean = try {
+        context.startActivity(intent)
+        true
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "No app available for this action", Toast.LENGTH_SHORT).show()
+        false
     }
 }

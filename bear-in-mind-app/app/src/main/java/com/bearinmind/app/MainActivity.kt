@@ -22,7 +22,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,7 +49,9 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BearInMindApp() {
-    var current by remember { mutableStateOf(Tab.Home) }
+    var current by rememberSaveable { mutableStateOf(Tab.Home) }
+    val booking = rememberBookingFormState()
+    var noteDraft by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -77,10 +79,13 @@ private fun BearInMindApp() {
         val modifier = Modifier.padding(padding)
         when (current) {
             Tab.Home -> HomeScreen(modifier) { current = it }
-            Tab.Services -> ServicesScreen(modifier) { current = Tab.Booking }
-            Tab.Booking -> BookingScreen(modifier)
+            Tab.Services -> ServicesScreen(modifier) { service ->
+                booking.service = service.name
+                current = Tab.Booking
+            }
+            Tab.Booking -> BookingScreen(modifier, booking)
             Tab.Shop -> ShopScreen(modifier)
-            Tab.Notes -> NotesScreen(modifier)
+            Tab.Notes -> NotesScreen(modifier, noteDraft) { noteDraft = it }
         }
     }
 }
